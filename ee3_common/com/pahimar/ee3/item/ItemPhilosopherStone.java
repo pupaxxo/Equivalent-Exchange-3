@@ -4,18 +4,19 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
 
 import com.pahimar.ee3.EquivalentExchange3;
 import com.pahimar.ee3.configuration.ConfigurationSettings;
 import com.pahimar.ee3.core.helper.NBTHelper;
 import com.pahimar.ee3.core.helper.TransmutationHelper;
-import com.pahimar.ee3.lib.ActionTypes;
 import com.pahimar.ee3.lib.CustomItemRarity;
 import com.pahimar.ee3.lib.GuiIds;
 import com.pahimar.ee3.lib.Sounds;
 import com.pahimar.ee3.lib.Strings;
+import com.pahimar.ee3.network.PacketTypeHandler;
+import com.pahimar.ee3.network.packet.PacketSoundEvent;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -28,15 +29,15 @@ import cpw.mods.fml.relauncher.SideOnly;
  * @license Lesser GNU Public License v3 (http://www.gnu.org/licenses/lgpl.html)
  * 
  */
-public class ItemPhilosopherStone extends ItemEE implements
-        ITransmutationStone, IChargeable, IKeyBound {
+public class ItemPhilosopherStone extends ItemEE
+        implements ITransmutationStone, IChargeable, IKeyBound {
 
     private int maxChargeLevel;
 
     public ItemPhilosopherStone(int id) {
 
         super(id);
-        this.setIconCoord(2, 0);
+        this.setIconCoord(3, 0);
         this.setItemName(Strings.PHILOSOPHER_STONE_NAME);
         this.setCreativeTab(EquivalentExchange3.tabsEE3);
         this.setMaxDamage(ConfigurationSettings.PHILOSOPHERS_STONE_MAX_DURABILITY - 1);
@@ -44,13 +45,13 @@ public class ItemPhilosopherStone extends ItemEE implements
     }
 
     @SideOnly(Side.CLIENT)
-    public boolean hasEffect(ItemStack stack) {
+    public boolean hasEffect(ItemStack itemStack) {
 
-        return true;
+        return (NBTHelper.hasTag(itemStack, Strings.NBT_ITEM_CRAFTING_GUI_OPEN) || NBTHelper.hasTag(itemStack, Strings.NBT_ITEM_TRANSMUTATION_GUI_OPEN));
     }
 
     @SideOnly(Side.CLIENT)
-    public EnumRarity getRarity(ItemStack stack) {
+    public EnumRarity getRarity(ItemStack itemStack) {
 
         return EquivalentExchange3.proxy.getCustomRarityType(CustomItemRarity.RARE);
     }
@@ -85,9 +86,17 @@ public class ItemPhilosopherStone extends ItemEE implements
     }
 
     @Override
-    public void openPortableCrafting(EntityPlayer thePlayer) {
+    public void openPortableCraftingGUI(EntityPlayer thePlayer, ItemStack itemStack) {
 
+        NBTHelper.setBoolean(itemStack, Strings.NBT_ITEM_CRAFTING_GUI_OPEN, true);
         thePlayer.openGui(EquivalentExchange3.instance, GuiIds.PORTABLE_CRAFTING, thePlayer.worldObj, (int) thePlayer.posX, (int) thePlayer.posY, (int) thePlayer.posZ);
+    }
+    
+    @Override
+    public void openPortableTransmutationGUI(EntityPlayer thePlayer, ItemStack itemStack) {
+        
+        NBTHelper.setBoolean(itemStack, Strings.NBT_ITEM_TRANSMUTATION_GUI_OPEN, true);
+        thePlayer.openGui(EquivalentExchange3.instance, GuiIds.PORTABLE_TRANSMUTATION, thePlayer.worldObj, (int) thePlayer.posX, (int) thePlayer.posY, (int) thePlayer.posZ);
     }
 
     @Override
@@ -130,35 +139,40 @@ public class ItemPhilosopherStone extends ItemEE implements
     public void doKeyBindingAction(EntityPlayer thePlayer, ItemStack itemStack, String keyBinding) {
 
         if (keyBinding.equals(ConfigurationSettings.KEYBINDING_EXTRA)) {
-            openPortableCrafting(thePlayer);
+            if (!thePlayer.isSneaking()) {
+                openPortableCraftingGUI(thePlayer, itemStack);
+            }
+            else {
+                openPortableTransmutationGUI(thePlayer, itemStack);
+            }
         }
         else if (keyBinding.equals(ConfigurationSettings.KEYBINDING_TOGGLE)) {
             if (TransmutationHelper.targetBlockStack != null) {
-            	if(!thePlayer.isSneaking()){
-            		TransmutationHelper.targetBlockStack = TransmutationHelper.getNextBlock(TransmutationHelper.targetBlockStack.itemID, TransmutationHelper.targetBlockStack.getItemDamage());
-            	}else{
-            		TransmutationHelper.targetBlockStack = TransmutationHelper.getPreviousBlock(TransmutationHelper.targetBlockStack.itemID, TransmutationHelper.targetBlockStack.getItemDamage());
-            	}
+                if (!thePlayer.isSneaking()) {
+                    TransmutationHelper.targetBlockStack = TransmutationHelper.getNextBlock(TransmutationHelper.targetBlockStack.itemID, TransmutationHelper.targetBlockStack.getItemDamage());
+                }
+                else {
+                    TransmutationHelper.targetBlockStack = TransmutationHelper.getPreviousBlock(TransmutationHelper.targetBlockStack.itemID, TransmutationHelper.targetBlockStack.getItemDamage());
+                }
             }
         }
-        // TODO Packet-ize the sounds
         else if (keyBinding.equals(ConfigurationSettings.KEYBINDING_CHARGE)) {
             if (!thePlayer.isSneaking()) {
                 if (getCharge(itemStack) == maxChargeLevel) {
-                    thePlayer.worldObj.playSoundAtEntity(thePlayer, Sounds.FAIL, 1.5F, 1.5F);
+                    PacketDispatcher.sendPacketToAllAround(thePlayer.posX, thePlayer.posY, thePlayer.posZ, 64D, thePlayer.worldObj.provider.dimensionId, PacketTypeHandler.populatePacket(new PacketSoundEvent(thePlayer.username, Sounds.FAIL, thePlayer.posX, thePlayer.posY, thePlayer.posZ, 1.5F, 1.5F)));
                 }
                 else {
                     increaseCharge(itemStack);
-                    thePlayer.worldObj.playSoundAtEntity(thePlayer, Sounds.CHARGE_UP, 0.5F, 0.5F + (0.5F * (getCharge(itemStack) * 1.0F / maxChargeLevel)));
+                    PacketDispatcher.sendPacketToAllAround(thePlayer.posX, thePlayer.posY, thePlayer.posZ, 64D, thePlayer.worldObj.provider.dimensionId, PacketTypeHandler.populatePacket(new PacketSoundEvent(thePlayer.username, Sounds.CHARGE_UP, thePlayer.posX, thePlayer.posY, thePlayer.posZ, 0.5F, 0.5F + (0.5F * (getCharge(itemStack) * 1.0F / maxChargeLevel)))));
                 }
             }
             else {
                 if (getCharge(itemStack) == 0) {
-                    thePlayer.worldObj.playSoundAtEntity(thePlayer, Sounds.FAIL, 1.5F, 1.5F);
+                    PacketDispatcher.sendPacketToAllAround(thePlayer.posX, thePlayer.posY, thePlayer.posZ, 64D, thePlayer.worldObj.provider.dimensionId, PacketTypeHandler.populatePacket(new PacketSoundEvent(thePlayer.username, Sounds.FAIL, thePlayer.posX, thePlayer.posY, thePlayer.posZ, 1.5F, 1.5F)));
                 }
                 else {
                     decreaseCharge(itemStack);
-                    thePlayer.worldObj.playSoundAtEntity(thePlayer, Sounds.CHARGE_DOWN, 0.5F, 1.0F - (0.5F - (0.5F * (getCharge(itemStack) * 1.0F / maxChargeLevel))));
+                    PacketDispatcher.sendPacketToAllAround(thePlayer.posX, thePlayer.posY, thePlayer.posZ, 64D, thePlayer.worldObj.provider.dimensionId, PacketTypeHandler.populatePacket(new PacketSoundEvent(thePlayer.username, Sounds.CHARGE_DOWN, thePlayer.posX, thePlayer.posY, thePlayer.posZ, 0.5F, 1.0F - (0.5F - (0.5F * (getCharge(itemStack) * 1.0F / maxChargeLevel))))));
                 }
             }
         }
