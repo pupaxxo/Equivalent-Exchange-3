@@ -43,4 +43,22 @@
 	<entry key="version.outdated">Uma nova versão de @MOD_NAME@ existe (@REMOTE_MOD_VERSION@) para @MINECRAFT_VERSION@. Consiga-a aqui: @MOD_UPDATE_LOCATION@</entry>
 	<entry key="version.general_error">Erro checando a versão remota mestre</entry>
 	<entry key="version.check_disabled">Checagem remota desligada, pulando</entry>
+	<entry key="command.ee3.overlay.turned_on"> </entry>
+	<entry key="command.ee3.overlay.turned_off"> </entry>
+	<entry key="command.ee3.overlay.position.usage"> </entry>
+	<entry key="command.ee3.overlay.position.top_left"> </entry>
+	<entry key="command.ee3.overlay.position.top_right"> </entry>
+	<entry key="command.ee3.overlay.position.bottom_left"> </entry>
+	<entry key="command.ee3.overlay.position.bottom_right"> </entry>
+	<entry key="command.ee3.overlay.opacity.usage"> </entry>
+	<entry key="command.ee3.overlay.opacity.updated"> </entry>
+	<entry key="command.ee3.overlay.scale.usage"> </entry>
+	<entry key="command.ee3.overlay.scale.updated"> </entry>
+	<entry key="command.ee3.particles.usage"> </entry>
+	<entry key="command.ee3.particles.turned_on"> </entry>
+	<entry key="command.ee3.particles.turned_off"> </entry>
+	<entry key="command.ee3.sounds.usage"> </entry>
+	<entry key="command.ee3.sounds.set_to_all"> </entry>
+	<entry key="command.ee3.sounds.set_to_self"> </entry>
+	<entry key="command.ee3.sounds.turned_off"> </entry>
 </properties>
