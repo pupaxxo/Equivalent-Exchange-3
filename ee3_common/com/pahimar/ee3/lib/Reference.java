@@ -1,9 +1,9 @@
 package com.pahimar.ee3.lib;
 
 /**
- * Reference
+ * Equivalent-Exchange-3
  * 
- * General purpose library to contain mod related constants
+ * Reference
  * 
  * @author pahimar
  * @license Lesser GNU Public License v3 (http://www.gnu.org/licenses/lgpl.html)
@@ -24,5 +24,6 @@ public class Reference {
     public static final String SERVER_PROXY_CLASS = "com.pahimar.ee3.core.proxy.CommonProxy";
     public static final String CLIENT_PROXY_CLASS = "com.pahimar.ee3.core.proxy.ClientProxy";
     public static final int VERSION_CHECK_ATTEMPTS = 3;
+    public static final float MODEL_TEXTURE_OFFSET = 0.0002F;
 
 }

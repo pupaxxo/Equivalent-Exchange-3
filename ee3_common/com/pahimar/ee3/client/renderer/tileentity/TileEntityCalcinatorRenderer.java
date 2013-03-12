@@ -10,9 +10,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * RenderCalcinator
+ * Equivalent-Exchange-3
  * 
- * Renders the Calcinator in game as a TESR (Tile Entity Special Render)
+ * TileEntityCalcinatorRenderer
  * 
  * @author pahimar
  * @license Lesser GNU Public License v3 (http://www.gnu.org/licenses/lgpl.html)
@@ -21,9 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class TileEntityCalcinatorRenderer extends TileEntitySpecialRenderer {
 
-    static final float scale = (float) (1.0 / 16.0);
-
-    private ModelCalcinator modelCalcinator = new ModelCalcinator(scale);
+    private ModelCalcinator modelCalcinator = new ModelCalcinator();
 
     @Override
     public void renderTileEntityAt(TileEntity tileEntity, double x, double y, double z, float tick) {
